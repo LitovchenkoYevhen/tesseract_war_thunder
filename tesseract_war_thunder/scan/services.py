@@ -1,23 +1,17 @@
 import re
+from time import sleep
 
+from thefuzz import process
+
+from tesseract_war_thunder.scan.crowler import crowl_player_stats
 from tesseract_war_thunder.scan.models import Player
+from tesseract_war_thunder.scan.settings import action_dict, match_percent
+from tesseract_war_thunder.scan.tesseract_scan import make_enemy_list
 
-action_dict = {
-    'kill': 'сбил',
-    'damaged': 'подбил',
-    'arson': 'поджог',
-    'destroy': 'уничтожил',
-    'crashed': 'разбился'
-}
 player_dict = {}
 
 
-def make_dict(data):
-    data = eval(data.replace('true', 'True').replace('false', 'False'))
-    return data
-
-
-def return_new_lines(data, string_set):
+def return_new_lines(data, string_set) -> dict:
     new_dict = {}
     for i in data:
         id = i['id']
@@ -28,45 +22,66 @@ def return_new_lines(data, string_set):
     return new_dict
 
 
-def get_name_transport_tuple(full_line: str):  # ['Fenrir_alex (␗P-47D) ', ' diezGR (A6M3)']
+def get_player_info(full_line: str) -> dict:  # 'Fenrir_alex (␗P-47D) '
     line = full_line.strip()
-    player_name = None
-    player_transport = None
-    try:
-        player_transport = re.search(r'\(.+\)$', line)[0]
-        player_name = re.search(r'^\W?\w+\W?\s?\w+', line)[0]
-    except:
-        pass
-    return player_name, player_transport
-
-
-def get_action_players_info(line, action):
-    line = line.split(action_dict[action])
-    aggressive, victim = line[0], line[1]
-    aggressive_name, aggressive_transport = get_name_transport_tuple(aggressive)
-    victim_name, victim_transport = get_name_transport_tuple(victim)
+    ai = 'AI'
+    if re.search(r'\)$', line):  # Check if not AI
+        player_nick = re.search(r'\s?\b\w+\b\s\(', line)[0].strip('(').strip()
+        if len(player_nick) > 4:
+            try:
+                player_transport = re.search(r'\(.+\)', line)[0]
+                player_name = re.search(r'^\W?\w+\W?\s?\w+', line)[0]
+            except:
+                pass
+            else:
+                result = {
+                    'player_name': player_name,
+                    'player_transport': player_transport,
+                    'player_nick': player_nick
+                }
+                return result
     result = {
-        'aggressive_name': aggressive_name,
-        'aggressive_transport': aggressive_transport,
-        'victim_name': victim_name,
-        'victim_transport': victim_transport,
-        'action': action
+        'player_name': ai,
+        'player_transport': ai,
+        'player_nick': ai
     }
     return result
 
 
-def get_pve_player(line, action):
+def get_action_players_info(line, action) -> dict:
     line = line.split(action_dict[action])
     aggressive, victim = line[0], line[1]
-    aggressive_name, aggressive_transport = get_name_transport_tuple(aggressive)
+    aggressive_info = get_player_info(aggressive)
+    victim_info = get_player_info(victim)
     result = {
-        'aggressive_name': aggressive_name,
-        'aggressive_transport': aggressive_transport,
-        'victim_name': 'AI',
-        'victim_transport': 'AI',
+        'aggressive_info': aggressive_info,
+        'victim_info': victim_info,
         'action': action
     }
     return result
+
+# todo сделать механизм установления жертвы ( это игрок или бот )
+# def get_victim_info(line, action):
+#     player = re.search(r'\)$', line)
+#     if not player:
+#         soul = False
+#
+#     victim_invo = {
+#         'soul': soul,
+#         'player_name':12
+#     }
+# def get_pve_player(line, action):
+#     line = line.split(action_dict[action])
+#     aggressive, victim = line[0], line[1]
+#     aggressive_name, aggressive_transport = get_name_transport_tuple(aggressive)
+#     result = {
+#         'aggressive_name': aggressive_name,
+#         'aggressive_transport': aggressive_transport,
+#         'victim_name': 'AI',
+#         'victim_transport': 'AI',
+#         'action': action
+#     }
+#     return result
 
 
 def scan_line(line: str):
@@ -83,18 +98,33 @@ def scan_line(line: str):
         result = get_action_players_info(line, action)
     elif action_dict['destroy'] in line:
         action = 'destroy'
-        result = get_pve_player(line, action)
+        result = get_action_players_info(line, action)
     elif action_dict['crashed'] in line:
         action = 'crashed'
-        result = get_pve_player(line, action)
+        result = get_action_players_info(line, action)
     if result and action:
         return result
     return None
 
 
-def check_or_create(name, plane) -> Player:
+def check_enemy(nick):
+    enemy_name_list = make_enemy_list()
+    # print(type(nick))
+    # print(nick, '----------', enemy_name_list)
+    match_result = process.extractOne(nick, enemy_name_list)
+    if match_result:
+        return True
+    return False
+
+
+def check_or_create(parsed_dict) -> Player:
+    name = parsed_dict['player_name']
     if name not in player_dict.keys():
-        player_dict[name] = Player(name, plane)
+        plane, nick = parsed_dict['player_transport'], parsed_dict['player_nick']
+        # print(parsed_dict)
+        enemy = check_enemy(nick)
+        stats = crowl_player_stats(nick)
+        player_dict[name] = Player(name, plane, nick, stats=stats, enemy=enemy)
     return player_dict[name]
 
 

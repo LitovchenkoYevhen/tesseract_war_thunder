@@ -5,11 +5,17 @@ class Player:
     unknown = 'unknown'
     dead = 'dead'
 
-    def __init__(self, player, transport, condition=good_condition):
+    def __init__(self, player, transport, nick, enemy=False, stats=None, condition=good_condition):
         self.player_name = player
+        self.player_nick = nick
         self.player_transport = transport
         self.transport_condition = condition
         self.live = True
+        self.enemy = enemy
+        self.stats = stats
+
+    def __str__(self):
+        return self.player_name + ' ' + self.player_transport + ' ' + self.transport_condition
 
     def destroy_transport(self, unknown):
         self.player_transport = unknown
