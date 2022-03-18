@@ -11,7 +11,6 @@ screen_dict = {
     'alias': {"top": 260, "left": 490, "width": 210, "height": 320},
     'enemy': {"top": 260, "left": 740, "width": 210, "height": 320}
 }
-enemy = {"top": 260, "left": 740, "width": 210, "height": 320}
 
 
 def make_enemy_list(screen_dict):
@@ -43,6 +42,7 @@ def make_enemy_list(screen_dict):
                 player_name_list.append(line)
         players_dict[team_key] = player_name_list
     return players_dict
+
 
 print(make_enemy_list(screen_dict))
 
