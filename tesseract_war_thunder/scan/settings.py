@@ -19,9 +19,9 @@ action_dict = {
     'crashed': 'разбился'
 }
 
-frequency = 0.1  # Frequency of requests to war thunder api.
+frequency = 1  # Frequency of requests to war thunder api.
 match_percent = 90  # Describes percent to consider match as success.
 
-debug = False
+debug = True
 
 crowler_base_url = 'https://thunderskill.com/ru/stat/{}'

@@ -5,7 +5,7 @@ import re
 from time import sleep
 
 from tesseract_war_thunder.scan.settings import debug, tesseract_conf
-
+from tesseract_war_thunder.scan import variables
 
 screen_dict = {
     'alias': {"top": 260, "left": 490, "width": 210, "height": 320},
@@ -13,10 +13,10 @@ screen_dict = {
 }
 
 
-def make_enemy_list(screen_dict):
+def make_players_dict():
+    print('start tesseract')
     players_dict = {}
     player_name_list = []
-    sleep(4)
     for team_key, team_value in zip(screen_dict.keys(), screen_dict.values()):
         print(team_key)
         file_name = "{}_screenshot.png".format(team_key)
@@ -41,9 +41,11 @@ def make_enemy_list(screen_dict):
                 line = re.search(r'\w+$', line)[0]
                 player_name_list.append(line)
         players_dict[team_key] = player_name_list
+        variables.alias_list = players_dict['alias']
+        variables.enemy_list = players_dict['enemy'] if 'enemy' in players_dict.keys() else None
+        print('end tesseract')
+
     return players_dict
 
-
-print(make_enemy_list(screen_dict))
 
 

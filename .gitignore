@@ -2,3 +2,4 @@ venv/
 .idea/
 __pycache__/
 *.png
+/tesseract_war_thunder/uno/

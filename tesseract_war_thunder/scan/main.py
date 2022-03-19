@@ -7,7 +7,9 @@ import re
 import requests
 from requests.exceptions import ConnectionError
 from time import sleep
+from threading import Thread
 
+from tesseract_war_thunder.scan.crowler import crowl_list
 from tesseract_war_thunder.scan.services import player_dict, return_new_lines, \
     scan_line, check_or_create
 
@@ -20,9 +22,9 @@ def scan_enemies(frequency):
         new_lines = None
         n += 1
         try:
-            resp_chat = requests.get('http://localhost:8111/hudmsg', params={'lastEvt': 0, 'lastDmg': 500})
-            # with open('data.txt', 'w') as outfile:
-            #     json.dump(resp_chat.text, outfile)
+            resp_chat = requests.get('http://localhost:8111/hudmsg', params={'lastEvt': 0, 'lastDmg': 0})
+            with open('data_2.txt', 'w') as outfile:
+                json.dump(resp_chat.text, outfile)
             # with open('data.txt', 'r') as file:
             #     resp_chat = json.load(file)
 
@@ -46,15 +48,13 @@ def scan_enemies(frequency):
                         victim.damage_transport()
                     elif action == 'crashed':
                         attacker.die()
-            for i in player_dict.values():
-                if i.live and i.player_name is not None and i.player_name != 'AI':
-                    stats = i.stats['Реалистичный режим'] if isinstance(i.stats, dict) else ''
-                    if i.enemy:
-
-                        print(str(i) + ' ' + str(i.enemy), stats)
-            print('-----------------')
-
-
-scan_enemies(frequency)
+        for i in player_dict.values():
+            if i.player_name is not None and i.player_name != 'AI':
+                stats = i.stats['Реалистичный режим'] if i.stats else ''
+                enemy = i.enemy if i.enemy else ''
+                print(i.player_name, stats, enemy, i.player_nick)
+        print('-----------------')
 
 
+# Thread(target=crowl_list).start()
+# scan_enemies(frequency)

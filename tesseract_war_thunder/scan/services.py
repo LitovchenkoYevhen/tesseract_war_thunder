@@ -1,12 +1,11 @@
 import re
 from time import sleep
-
+from threading import Thread
 from thefuzz import process
 
-from tesseract_war_thunder.scan.crowler import crowl_player_stats
 from tesseract_war_thunder.scan.models import Player
-from tesseract_war_thunder.scan.settings import action_dict, match_percent
-from tesseract_war_thunder.scan.tesseract_scan import make_enemy_list
+from tesseract_war_thunder.scan.settings import action_dict
+from tesseract_war_thunder.scan.variables import alias_list, enemy_list
 
 player_dict = {}
 
@@ -29,21 +28,26 @@ def get_player_info(full_line: str) -> dict:  # 'Fenrir_alex (␗P-47D) '
         player_nick = re.search(r'\s?\b\w+\b\s\(', line)[0].strip('(').strip()
         if len(player_nick) > 4:
             try:
+                # todo сделать распознавание регулярками на data_2.txt
                 player_transport = re.search(r'\(.+\)', line)[0]
                 player_name = re.search(r'^\W?\w+\W?\s?\w+', line)[0]
+                # player_name = re.search(r'^\W?\w+\W{0,3}\s\W{0,4}\w+', line)[0]
+                player_raw_nick = re.search(r'^\W?\w+\W?\s?\w+', line)[0]
             except:
                 pass
             else:
                 result = {
                     'player_name': player_name,
                     'player_transport': player_transport,
-                    'player_nick': player_nick
+                    'player_nick': player_nick,
+                    'player_raw_nick': player_raw_nick
                 }
                 return result
     result = {
         'player_name': ai,
         'player_transport': ai,
-        'player_nick': ai
+        'player_nick': ai,
+        'player_raw_nick': ai
     }
     return result
 
@@ -107,24 +111,27 @@ def scan_line(line: str):
     return None
 
 
-def check_enemy(nick):
-    enemy_name_list = make_enemy_list()
-    # print(type(nick))
-    # print(nick, '----------', enemy_name_list)
-    match_result = process.extractOne(nick, enemy_name_list)
-    if match_result:
-        return True
-    return False
+def check_enemy():
+    for player in player_dict.values():
+        if player.enemy is None:
+            nick = player.player_nick
+            if enemy_list and alias_list:
+                full_players_list = enemy_list + alias_list
+                match_result = process.extractOne(nick, full_players_list)[0]
+                if match_result in enemy_list:
+                    player.enemy = True
 
 
-def check_or_create(parsed_dict) -> Player:
+def check_or_create(parsed_dict: dict) -> Player:
     name = parsed_dict['player_name']
     if name not in player_dict.keys():
-        plane, nick = parsed_dict['player_transport'], parsed_dict['player_nick']
+        plane = parsed_dict['player_transport']
+        nick = parsed_dict['player_nick']
+        raw_nick = parsed_dict['player_raw_nick']
         # print(parsed_dict)
-        enemy = check_enemy(nick)
-        stats = crowl_player_stats(nick)
-        player_dict[name] = Player(name, plane, nick, stats=stats, enemy=enemy)
+        # enemy = check_enemy(nick)
+        player = Player(name, plane, nick, raw_nick=raw_nick)
+        player_dict[name] = player
     return player_dict[name]
 
 
