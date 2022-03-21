@@ -10,7 +10,7 @@ from time import sleep
 from threading import Thread
 
 from tesseract_war_thunder.scan.crowler import crowl_list
-from tesseract_war_thunder.scan.services import player_dict, return_new_lines, \
+from tesseract_war_thunder.scan.services import check_enemy, player_dict, print_player_dict, return_new_lines, \
     scan_line, check_or_create
 
 
@@ -22,16 +22,18 @@ def scan_enemies(frequency):
         new_lines = None
         n += 1
         try:
-            resp_chat = requests.get('http://localhost:8111/hudmsg', params={'lastEvt': 0, 'lastDmg': 0})
-            with open('data_2.txt', 'w') as outfile:
-                json.dump(resp_chat.text, outfile)
-            # with open('data.txt', 'r') as file:
-            #     resp_chat = json.load(file)
+            # resp_chat = requests.get('http://localhost:8111/hudmsg', params={'lastEvt': 0, 'lastDmg': 0})
+            # resp_dict = json.loads(resp_chat.text).get('damage')
+
+            # with open('data_2.txt', 'w') as outfile:
+            #     json.dump(resp_chat.text, outfile)
+            with open('data.txt', 'r') as file:
+                resp_chat = json.load(file)
+                resp_dict = json.loads(resp_chat).get('damage')
 
         except requests.exceptions.ConnectionError:
             print('No connection')
         else:
-            resp_dict = json.loads(resp_chat.text).get('damage')
             new_lines = return_new_lines(resp_dict, string_set)
         if new_lines:
 
@@ -48,12 +50,8 @@ def scan_enemies(frequency):
                         victim.damage_transport()
                     elif action == 'crashed':
                         attacker.die()
-        for i in player_dict.values():
-            if i.player_name is not None and i.player_name != 'AI':
-                stats = i.stats['Реалистичный режим'] if i.stats else ''
-                enemy = i.enemy if i.enemy else ''
-                print(i.player_name, stats, enemy, i.player_nick)
-        print('-----------------')
+        Thread(target=check_enemy).start()
+        print_player_dict()
 
 
 # Thread(target=crowl_list).start()

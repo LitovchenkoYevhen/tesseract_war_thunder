@@ -5,7 +5,7 @@ from thefuzz import process
 
 from tesseract_war_thunder.scan.models import Player
 from tesseract_war_thunder.scan.settings import action_dict
-from tesseract_war_thunder.scan.variables import alias_list, enemy_list
+from tesseract_war_thunder.scan import variables
 
 player_dict = {}
 
@@ -29,10 +29,12 @@ def get_player_info(full_line: str) -> dict:  # 'Fenrir_alex (␗P-47D) '
         if len(player_nick) > 4:
             try:
                 # todo сделать распознавание регулярками на data_2.txt
-                player_transport = re.search(r'\(.+\)', line)[0]
-                player_name = re.search(r'^\W?\w+\W?\s?\w+', line)[0]
+                player_transport = re.search(r'\([▃▄]?\b\w+\W?\s?\w+\s?(\s|\w+)', line)[0].replace('(', '')
+                # player_transport = re.search(r'\(.+\)', line)[0]
+                player_name = re.search(r'^(\w{2,}|\W\w+\W?\s?⋇?\w+)', line)[0]
                 # player_name = re.search(r'^\W?\w+\W{0,3}\s\W{0,4}\w+', line)[0]
-                player_raw_nick = re.search(r'^\W?\w+\W?\s?\w+', line)[0]
+                # player_raw_nick = re.search(r'^\W?\w+\W?\s?\w+', line)[0]
+                player_raw_nick = player_name.split(' ')[1] if player_name.find(' ') != -1 else player_name
             except:
                 pass
             else:
@@ -112,14 +114,20 @@ def scan_line(line: str):
 
 
 def check_enemy():
+    print(variables.enemy_list)
+    print(variables.alias_list)
     for player in player_dict.values():
-        if player.enemy is None:
+        if not player.enemy and player.player_name != 'AI':
             nick = player.player_nick
-            if enemy_list and alias_list:
-                full_players_list = enemy_list + alias_list
+            if variables.enemy_list and variables.alias_list:
+
+                full_players_list = variables.enemy_list + variables.alias_list
+                print(full_players_list)
                 match_result = process.extractOne(nick, full_players_list)[0]
-                if match_result in enemy_list:
-                    player.enemy = True
+                sleep(4)
+                if match_result in variables.enemy_list:
+                    print(nick, process.extractOne(nick, full_players_list))
+                    player.make_enemy()
 
 
 def check_or_create(parsed_dict: dict) -> Player:
@@ -135,7 +143,15 @@ def check_or_create(parsed_dict: dict) -> Player:
     return player_dict[name]
 
 
-
+def print_player_dict():
+    for player in player_dict.values():
+        if player.player_name and player.player_name != 'AI' and player.enemy:
+            stats = player.stats['Реалистичный режим'] if player.stats else ''
+            enemy = 'ENEMY' if player.enemy is not None else ''
+    #         print(player.player_name, stats, enemy)
+    # print('---------------------')
+    # print(variables.enemy_list)
+    # print('---------------------')
 
 
 

@@ -28,6 +28,9 @@ class Player:
     def update_stats(self, stats_dict):
         self.stats = stats_dict
 
+    def make_enemy(self):
+        self.enemy = True
+
 
     # def new_transport(self, transport, condition=good_condition):
     #     self.player_transport = transport

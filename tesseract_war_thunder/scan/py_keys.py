@@ -20,14 +20,18 @@ COMBINATIONS = [
     {keyboard.Key.shift, keyboard.KeyCode(char='з')},
     {keyboard.Key.shift, keyboard.KeyCode(char='З')}
 ]
+Thread(target=crowl_list).start()
+make_players_dict()
+# Thread(target=check_enemy).start()
+scan_enemies(frequency)
 
 
 def execute():
     print("Make screenshot")
-    Thread(target=crowl_list).start()
-    make_players_dict()
-    Thread(target=check_enemy).start()
-    scan_enemies(frequency)
+    # Thread(target=crowl_list).start()
+    # make_players_dict()
+    # Thread(target=check_enemy).start()
+    # scan_enemies(frequency)
 
 
 def on_press(key):

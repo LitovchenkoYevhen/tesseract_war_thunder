@@ -10,9 +10,8 @@ def crowl_and_set_player_stats(player):
     if player.raw_nick == 'AI':
         return
     nick = player.raw_nick
-    if nick.startswith('⋇'):
-        print(nick)
-        nick = nick.strip('⋇') + '@psn'
+    if nick.startswith('⋇'): pass
+        # nick = nick.strip('⋇') + '@psn'
     rek = req.get(crowler_base_url.format(player.player_nick))
     status_code = rek.status_code
     if status_code == 200:
@@ -22,9 +21,9 @@ def crowl_and_set_player_stats(player):
                       for element in elements}
         if stats_dict:
             player.update_stats(stats_dict)
-        else:
-            print(nick, 'NO stats', status_code)
-            print(crowler_base_url.format(nick))
+        else: pass
+            # print(nick, 'NO stats', status_code)
+            # print(crowler_base_url.format(nick))
 
 
 def crowl_list():

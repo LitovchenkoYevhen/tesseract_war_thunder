@@ -14,11 +14,9 @@ screen_dict = {
 
 
 def make_players_dict():
-    print('start tesseract')
     players_dict = {}
-    player_name_list = []
     for team_key, team_value in zip(screen_dict.keys(), screen_dict.values()):
-        print(team_key)
+        players_dict[team_key] = []
         file_name = "{}_screenshot.png".format(team_key)
         with mss.mss() as sct:
             # The screen part to capture
@@ -34,17 +32,13 @@ def make_players_dict():
         # cv2.imshow('Result', gray)
         # cv2.waitKey(0)
         str_img = pytesseract.image_to_string(gray, config=tesseract_conf)
-        # todo доделать функционал под два скрина
         for line in str_img.splitlines():
             if line:
                 line = line.strip()
                 line = re.search(r'\w+$', line)[0]
-                player_name_list.append(line)
-        players_dict[team_key] = player_name_list
+                players_dict[team_key].append(line)
         variables.alias_list = players_dict['alias']
         variables.enemy_list = players_dict['enemy'] if 'enemy' in players_dict.keys() else None
-        print('end tesseract')
-
     return players_dict
 
 
