@@ -14,7 +14,7 @@ code_dict = {
     'kill': 'сбил',
     'crashed': 'разбился'
 }
-frequency = 0.5
+
 
 def scan_enemies(frequency):
     string_set = {}
@@ -24,7 +24,7 @@ def scan_enemies(frequency):
         new_lines = None
         n += 1
         try:
-            resp_chat = requests.get('http://localhost:8111/hudmsg', params={'lastEvt': 0, 'lastDmg': 0})
+            resp_chat = requests.get('http://desktop-qt0sfna:8111/', params={'lastEvt': 0, 'lastDmg': 0})
             print(resp_chat.text)
         except requests.exceptions.ConnectionError:
             print('No connection')
@@ -60,7 +60,7 @@ def scan_enemies(frequency):
             print('-----------------')
 
 
-scan_enemies(frequency)
+scan_enemies(0.5)
 
 
 

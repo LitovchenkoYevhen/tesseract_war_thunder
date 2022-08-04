@@ -28,7 +28,7 @@ def return_new_lines(data, string_set):
     return new_dict
 
 
-def get_name_transport_tuple(full_line: str):  # ['Fenrir_alex (␗P-47D) ', ' diezGR (A6M3)']
+def get_name_transport_tuple(full_line: str) -> tuple:  # ['Fenrir_alex (␗P-47D) ', ' diezGR (A6M3)']
     line = full_line.strip()
     player_name = None
     player_transport = None
@@ -40,7 +40,7 @@ def get_name_transport_tuple(full_line: str):  # ['Fenrir_alex (␗P-47D) ', ' d
     return player_name, player_transport
 
 
-def get_action_players_info(line, action):
+def get_action_players_info(line, action) -> dict:
     line = line.split(action_dict[action])
     aggressive, victim = line[0], line[1]
     aggressive_name, aggressive_transport = get_name_transport_tuple(aggressive)
